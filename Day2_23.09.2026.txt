@@ -1,0 +1,317 @@
+================================================================================
+
+           LINUX, DEVOPS & AWS NOTES — DAY 02 (23.09.2026)
+
+================================================================================
+
+
+
+1. PRACTICE ENVIRONMENT SETUP
+
+--------------------------------------------------------------------------------
+
+Platform: killercoda.com (Interactive playground, works on macOS, Linux, Windows)
+
+Steps:
+
+  - Visit killercoda.com
+
+  - Select Playground -> Ubuntu
+
+  - Provides a 60-minute ephemeral cloud server for practice
+
+
+
+
+
+2. BASIC SYSTEM & NAVIGATION COMMANDS
+
+--------------------------------------------------------------------------------
+
+pwd             : Print working directory (shows where you currently are)
+
+whoami          : Displays the currently logged-in user (e.g., ubuntu, root)
+
+history         : Displays the list of previously executed commands
+
+ls              : List files and folders in current directory
+
+ls -l           : Long listing format (permissions, owner, size, date)
+
+ls -lrt         : Long listing sorted by modification time (reverse: newest at bottom)
+
+cd <folder>     : Change directory into specified folder
+
+cd ..           : Move one level up (to parent folder)
+
+
+
+
+
+3. FILE & DIRECTORY OPERATIONS
+
+--------------------------------------------------------------------------------
+
+touch <file>    : Creates an empty file (e.g., touch text1.txt)
+
+mkdir <dir>     : Creates a new directory (e.g., mkdir my_project)
+
+cp <src> <dest> : Copies file from source to destination
+
+                  Example: cp text2.txt proj/
+
+mv <src> <dest> : Moves or renames file
+
+                  Example Move  : mv mvtext.txt proj/
+
+                  Example Rename: mv text1.txt sam.txt (content remains same)
+
+rm <file>       : Deletes a file (e.g., rm sam.txt)
+
+rm -r <dir>     : Recursively removes directory and all files inside it
+
+sudo            : "SuperUser DO" - runs commands with root/admin privileges
+
+                  Example: sudo rm -r protected_folder/
+
+
+
+
+
+4. FILE CONTENT VIEWING & EDITING
+
+--------------------------------------------------------------------------------
+
+[Vim Editor Basics]
+
+- Open or create file : vim filename.txt
+
+- Insert text         : Press 'i' on keyboard
+
+- Command mode        : Press 'Esc'
+
+- Save and exit       : Type ':wq!' and press Enter
+
+- Quit without saving : Type ':q!' and press Enter
+
+
+
+[Viewing Files]
+
+cat <file>      : Read full file content
+
+head <file>     : Displays first 10 lines of file by default
+
+head -n 5 <file>: Displays first 5 lines of file
+
+tail <file>     : Displays last 10 lines of file by default
+
+tail -n 5 <file>: Displays last 5 lines of file
+
+
+
+[Comparing Files]
+
+diff file1 file2    : Compares files and shows differences
+
+diff -y file1 file2 : Compares files side-by-side (column view)
+
+
+
+[Echo & Output Redirection]
+
+echo "Hello"             : Prints text directly to terminal
+
+echo "Content" > file    : Overwrites entire file with new text
+
+echo "Content" >> file   : Appends text to the end of the file
+
+
+
+
+
+5. FILE PERMISSIONS ARCHITECTURE (chmod)
+
+--------------------------------------------------------------------------------
+
+View permissions with: ls -l
+
+
+
+Structure of 10-character string (e.g., -rwxr-xr--):
+
+- Position 1      : File type ('-' = regular file, 'd' = directory)
+
+- Positions 2 to 4: Owner permissions
+
+- Positions 5 to 7: Group permissions
+
+- Positions 8 to 10: Other (World) permissions
+
+
+
+Numerical Values:
+
+  Read (r)        = 4
+
+  Write (w)       = 2
+
+  Execute (x)     = 1
+
+  No Permission   = 0
+
+
+
+Permission Calculation Examples:
+
+  rwx = 4 + 2 + 1 = 7
+
+  rw- = 4 + 2 + 0 = 6
+
+  r-x = 4 + 0 + 1 = 5
+
+  r-- = 4 + 0 + 0 = 4
+
+
+
+Command:
+
+  chmod <mode> <filename>
+
+  Example: chmod 777 z.txt
+
+
+
+Color Change Note:
+
+  Files often change color (commonly green) in terminal after adding 'x'
+
+  because the system recognizes it as an executable binary/script.
+
+
+
+Industry Security Standards:
+
+  - 777 is strictly avoided in production for security reasons.
+
+  - 644 is standard for files (Owner: rw-, Group: r--, Others: r--).
+
+  - 755 is standard for folders and executable scripts (Owner: rwx, Group: r-x, Others: r-x).
+
+
+
+
+
+6. HANDS-ON TASKS & SOLUTIONS
+
+--------------------------------------------------------------------------------
+
+[Task 1: Create Directory Tree Structure]
+
+Structure required:
+
+company/
+
+|-- developers/
+
+|   |-- frontend/
+
+|   `-- backend/
+
+|-- devops/
+
+`-- testing/
+
+
+
+Solution command:
+
+  mkdir -p company/developers/frontend company/developers/backend company/devops company/testing
+
+  (Install tree command to verify: sudo apt install tree && tree company)
+
+
+
+[Task 2: Permissions Practice]
+
+Task- (interview questions)create 3 file, give them permission, 
+1. 1st file rw- for others and 
+2. 2nd file make it executable for group without hampering previous permissions
+ non for others 
+3. all permissions 
+4. -w- r-x --x for owner for the 3 files created, remaining keeps as it is
+5. what are the industry standard permissions used
+
+Setup:
+
+  mkdir task1 && cd task1
+
+  touch a b c
+
+
+
+Solutions:
+
+  1. File 'a': rw- for others only
+
+     chmod 006 a
+
+
+
+  2. File 'b': Make it executable for group without changing other permissions
+
+     chmod g+x b
+
+
+
+  3. File 'c': All permissions
+
+     chmod 777 c
+
+
+
+  4. For all 3 files: Owner for file1 = -w- (2), Owner for file2 = r-x (5), Owner for file3 = --x (1) and keep remaining as it is.
+
+
+
+
+
+
+
+7. SYSTEM RESOURCE & PROCESS MONITORING
+
+--------------------------------------------------------------------------------
+
+free -m   : Shows total, used, and free RAM memory in Megabytes
+
+df -h     : Shows disk storage capacity and free space in human-readable format
+
+top       : Real-time task manager showing active CPU usage and running processes
+
+htop      : Interactive, user-friendly process viewer (sudo apt install htop)
+
+ps -ef    : Lists all running processes with their user and process IDs
+
+PID       : Process ID (unique number assigned to each running process)
+
+
+
+
+
+8. NETWORKING FUNDAMENTALS
+
+--------------------------------------------------------------------------------
+
+ping google.com : Sends ICMP packets to test if destination server is reachable
+
+
+
+AWS Practical Check:
+
+  Launch 2 EC2 instances in AWS, copy private IP of instance 2, and run:
+
+  ping <private-ip-of-instance-2>
+
+  (Ensures Security Groups allow ICMP traffic and network peering works).
+
+================================================================================
