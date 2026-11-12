@@ -1,0 +1,217 @@
+================================================================================
+
+           LINUX, DEVOPS & AWS NOTES — DAY 03 (24.09.2026)
+
+================================================================================
+
+
+
+1. PROCESS MANAGEMENT & BASIC CONNECTIVITY
+
+--------------------------------------------------------------------------------
+
+htop              : Interactive, human-readable process viewer showing running 
+
+                    background processes and resource usage.
+
+kill <PID>        : Terminates a specific running process using its Process ID 
+
+                    (e.g., kill 1234).
+
+ping google.com   : Tests reachability to a destination server by sending ICMP 
+
+                    packets and measuring response time in milliseconds (ms).
+
+
+
+
+
+2. DNS & IP FUNDAMENTALS
+
+--------------------------------------------------------------------------------
+
+ping 8.8.8.8      : 8.8.8.8 is Google's Public DNS IP address.
+
+Why DNS is used   : 
+
+  - Humans cannot memorize numerical IP addresses for every website/server.
+
+  - DNS (Domain Name System) translates domain names (google.com) into IPs.
+
+  - Exposing raw IP addresses directly poses security risks.
+
+
+
+
+
+3. AWS EC2 MULTI-INSTANCE DEPLOYMENT & SECURITY GROUPS
+
+--------------------------------------------------------------------------------
+
+[Launching Multiple EC2 Instances Simultaneously]
+
+- Go to AWS Console -> EC2 -> Launch Instance.
+
+- Configure OS (Ubuntu) and attach a Key Pair (.pem / .ppk).
+
+- Shortcut: Under "Summary" (right panel), set "Number of instances" to 2 to 
+
+  provision two identical servers at once, then rename them individually.
+
+
+
+[First Step After Server Creation]
+
+- Always refresh the local package index first:
+
+  sudo apt update
+
+
+
+[Server-to-Server Communication & Security Groups]
+
+- Security Groups act as virtual firewalls controlling inbound/outbound traffic.
+
+- Note: "ping" checks network reachability/communication (ICMP), whereas "SSH" 
+
+  (Port 22) establishes a remote terminal connection.
+
+- Even if two EC2 instances use different Security Groups, they can communicate 
+
+  as long as the receiving instance's Inbound Rules allow the required traffic.
+
+
+
+Steps to Enable Ping Between Server 1 and Server 2:
+
+  1. Connect to Server 1 via terminal/EC2 Instance Connect.
+
+  2. Select Server 2 in the AWS Console -> Go to "Security" tab -> Click the 
+
+     attached Security Group.
+
+  3. Click "Edit inbound rules" -> "Add rule":
+
+       - Type   : All traffic (or All ICMP - IPv4)
+
+       - Source : Custom -> 0.0.0.0/0 (Anywhere-IPv4)
+
+  4. Save rules.
+
+  5. From Server 1's terminal, run:
+
+     ping <Public-or-Private-IP-of-Server-2>
+
+
+
+
+
+4. NETWORKING & IP IDENTIFICATION COMMANDS (INTERVIEW FOCUS)
+
+--------------------------------------------------------------------------------
+
+ip a              : Displays all internal network interfaces and local/private 
+
+                    IP addresses assigned to the machine.
+
+curl ifconfig.me  : Queries an external service to return the exact PUBLIC IP 
+
+                    address of your server.
+
+
+
+Key Interview Distinction:
+
+  - "ip a" shows internal/private network interfaces.
+
+  - "curl ifconfig.me" reveals the outward-facing Public IP.
+
+  - Default SSH connections always operate over Port 22.
+
+
+
+
+
+5. FILE ARCHIVING & COMPRESSION (TAR)
+
+--------------------------------------------------------------------------------
+
+[Creating an Archive (.tar)]
+
+Setup practice files:
+
+  mkdir project && cd project
+
+  touch a b c d q w e r index.html
+
+  cd ..
+
+
+
+Command Syntax (tar -cvf <archive-name.tar> <source-folder>):
+
+  tar -cvf project.tar project/
+
+    -c : Create a new archive
+
+    -v : Verbose (displays progress/files being archived in terminal)
+
+    -f : File (specifies the filename of the archive)
+
+
+
+[Extracting an Archive]
+
+Remove original directory to test extraction:
+
+  rm -r project
+
+
+
+Command Syntax (tar -xvf <archive-name.tar>):
+
+  tar -xvf project.tar
+
+    -x : Extract files from an archive
+
+    -v : Verbose output
+
+    -f : File name to extract
+
+
+
+
+
+6. WEB SERVER INSTALLATION & SERVICE MANAGEMENT (NGINX)
+
+--------------------------------------------------------------------------------
+
+(Practice on both AWS EC2 and Killercoda Ubuntu environments)
+
+
+
+1. Install Nginx web server:
+
+   sudo apt install nginx
+
+     - sudo  : Grants root/administrator privileges
+
+     - apt   : Ubuntu's package manager
+
+     - nginx : High-performance web server & reverse proxy package
+
+
+
+2. Verify service status:
+
+   sudo systemctl status nginx
+
+     (Checks whether the Nginx daemon is active/running)
+
+
+
+3. Uninstall/Remove Nginx:
+
+   sudo apt remove nginx
+
+================================================================================
