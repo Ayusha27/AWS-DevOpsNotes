@@ -1,0 +1,311 @@
+================================================================================
+
+           AWS CLOUD NOTES — DAY 03 (30.09.2026)
+
+================================================================================
+
+
+
+1. AMAZON S3 (SIMPLE STORAGE SERVICE)
+
+--------------------------------------------------------------------------------
+
+[Core Concepts — Interview Focus]
+
+- What is S3? : Scalable cloud object storage service used to store and 
+
+                retrieve any amount of data (videos, audio, images, backups, 
+
+                static website files).
+
+- Storage Format: Stores data in the form of **OBJECTS** inside **BUCKETS** 
+
+                  (Key Interview Question: S3 is Object Storage, NOT Block 
+
+                  Storage like EBS).
+
+- Namespace     : S3 operates in a **Global Namespace** — every S3 bucket name 
+
+                  must be globally unique across all AWS accounts worldwide.
+
+
+
+[Creating a Bucket & Uploading Data]
+
+1. Go to AWS Console -> S3 -> Create bucket.
+
+2. Bucket type: General purpose.
+
+3. Enter a globally unique Bucket name (e.g., `demo-s3-ayusha-website`).
+
+4. Leave default settings -> Click "Create bucket".
+
+5. Open the bucket -> Click "Upload" -> "Add folder" -> Upload website folder 
+
+   (e.g., `Zay eCommerce website files`).
+
+
+
+[S3 Storage Classes & Lifecycle Cost Optimization]
+
+- S3 Standard             : Default storage for frequently accessed data.
+
+- S3 Standard-IA (Infrequent Access): If data is not accessed for a period 
+
+  (e.g., 15–30 days via Lifecycle rules), it can transition to S3 Standard-IA.
+
+  * Trade-off: Storage cost is significantly lower, but data retrieval takes 
+
+    slightly longer / incurs a retrieval fee.
+
+
+
+
+
+2. HOSTING A STATIC WEBSITE ON AMAZON S3
+
+--------------------------------------------------------------------------------
+
+[Step-by-Step Configuration]
+
+1. Enable Static Website Hosting:
+
+   - Open your bucket -> Go to **Properties** tab -> Scroll down to 
+
+     "Static website hosting" -> Click **Edit** -> Select **Enable**.
+
+   - Specify Index document: `index.html` -> Save changes.
+
+
+
+2. Unblock Public Access:
+
+   - Go to **Permissions** tab -> "Block public access (bucket settings)" -> 
+
+     Click **Edit** -> Uncheck "Block all public access" -> Save changes -> 
+
+     Type `confirm`.
+
+
+
+3. Enable ACLs (Access Control Lists) via Object Ownership:
+
+   - Under **Permissions** tab -> Scroll to "Object Ownership" -> Click **Edit**.
+
+   - Select **ACLs enabled** -> Check acknowledgement box -> Save changes.
+
+
+
+4. Make Website Files Public:
+
+   - Go back to **Objects** tab -> Open your website folder -> Select all files.
+
+   - Click **Actions** -> Select **Make public using ACL** -> Confirm.
+
+
+
+5. Access Live Website URL:
+
+   - Open `index.html` object details -> Copy the **Object URL** (or Bucket 
+
+     Website Endpoint):
+
+     Example: https://demo-s3-ayusha-website.s3.us-east-1.amazonaws.com/Zay+eCommerce+website+files/index.html
+
+
+
+[Key Benefit of S3 Hosting]
+
+- Provides a free, built-in AWS DNS endpoint URL out of the box without 
+
+  exposing a raw server Public IP address or purchasing a custom domain name.
+
+
+
+[Deleting an S3 Bucket Rule]
+
+- You CANNOT delete a non-empty S3 bucket directly.
+
+- Always click **Empty** on the bucket first, confirm deletion of all objects, 
+
+  and then click **Delete** bucket.
+
+
+
+
+
+3. AWS CLOUDFORMATION (INFRASTRUCTURE AS CODE — IaC)
+
+--------------------------------------------------------------------------------
+
+[What is CloudFormation?]
+
+- An AWS Infrastructure-as-Code (IaC) service that lets you provision and 
+
+  manage AWS resources (EC2, S3, Security Groups, Elastic IPs) automatically 
+
+  using declarative YAML or JSON templates instead of manual console clicks.
+
+
+
+[Creating a Stack via Template Studio]
+
+1. Go to AWS Console -> CloudFormation -> Create stack (With new resources).
+
+2. Choose "Build from Infrastructure Composer / Template Studio" (or Upload a 
+
+   template file).
+
+3. Write or paste the YAML script (Key-Value pairs defining `Resources`).
+
+4. Click "Save and continue" -> Enter Stack name (e.g., `Demo-stack`).
+
+5. Click Next -> Keep defaults -> Click **Submit**.
+
+6. Verify provisioning: Once stack status reaches `CREATE_COMPLETE`, check the 
+
+   EC2 console to verify `MySimpleInstance` is running.
+
+
+
+[CloudFormation Automatic Rollback — Interview Concept]
+
+- If an error occurs during stack creation or a stack update (for example, an 
+
+  invalid AMI ID or syntax/configuration failure in a new script), 
+
+  CloudFormation automatically triggers a **Rollback** (`ROLLBACK_IN_PROGRESS` / 
+
+  `UPDATE_ROLLBACK_COMPLETE`), reverting the infrastructure back to the last 
+
+  known working state so partial/broken resources are cleaned up safely.
+
+
+
+
+
+4. CLOUDFORMATION YAML TEMPLATES (PRACTICE SCRIPTS)
+
+--------------------------------------------------------------------------------
+
+[Template 1: Minimal EC2 Instance Creation]
+
+Resources:
+
+  SimpleEC2Instance:
+
+    Type: AWS::EC2::Instance
+
+    Properties:
+
+      InstanceType: t3.micro
+
+      ImageId: ami-02db68a01488594c5   # Replace with valid regional AMI ID
+
+      Tags:
+
+        - Key: Name
+
+          Value: MySimpleInstance
+
+
+
+
+
+[Template 2: Complete Web Server Stack (EC2 + Nginx UserData + SG + Elastic IP)]
+
+# Provisions an EC2 instance, installs & starts Nginx with a custom webpage,
+
+# attaches an HTTP (Port 80) Security Group, and binds a static Elastic IP.
+
+
+
+Resources:
+
+  SimpleEC2Instance:
+
+    Type: "AWS::EC2::Instance"
+
+    Properties:
+
+      InstanceType: t3.micro
+
+      ImageId: ami-02db68a01488594c5 # Replace with a valid AMI ID for your region
+
+      SecurityGroupIds:
+
+        - !Ref InstanceSecurityGroup
+
+      Tags:
+
+        - Key: Name
+
+          Value: MySimpleInstance # Replace with your desired instance name
+
+      UserData:
+
+        Fn::Base64: |
+
+          #!/bin/bash
+
+          yum update -y
+
+          yum install -y nginx
+
+          systemctl start nginx
+
+          systemctl enable nginx
+
+
+
+          # Create a sample index.html file
+
+          echo "<html>
+
+          <head>
+
+            <title>Welcome to Nginx on AWS</title>
+
+          </head>
+
+          <body>
+
+            <h1>SAMPLE WEBPAGE Using CloudFormation</h1>
+
+            <p>This is a sample webpage served by Nginx on an AWS EC2 instance.</p>
+
+          </body>
+
+          </html>" > /usr/share/nginx/html/index.html
+
+
+
+  InstanceSecurityGroup:
+
+    Type: "AWS::EC2::SecurityGroup"
+
+    Properties:
+
+      GroupDescription: "Enable HTTP access"
+
+      SecurityGroupIngress:
+
+        - IpProtocol: tcp
+
+          FromPort: 80
+
+          ToPort: 80
+
+          CidrIp: 0.0.0.0/0 # Allows HTTP access from anywhere (use with caution)
+
+
+
+  ElasticIP:
+
+    Type: "AWS::EC2::EIP"
+
+    Properties:
+
+      InstanceId: !Ref SimpleEC2Instance
+
+================================================================================

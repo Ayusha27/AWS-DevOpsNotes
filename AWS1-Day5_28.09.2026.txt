@@ -1,0 +1,253 @@
+================================================================================
+
+           DEVOPS & AWS NOTES — DAY 05 / AWS DAY 01 (28.09.2026)
+
+================================================================================
+
+
+
+1. AWS DOCUMENTATION & CORE SERVICES OVERVIEW
+
+--------------------------------------------------------------------------------
+
+Reference  : Official AWS Documentation (docs.aws.amazon.com)
+
+Service 1  : EC2 (Elastic Compute Cloud) - Virtual servers (covered previously).
+
+Service 2  : IAM (Identity and Access Management) - Controls WHO can access 
+
+             your AWS account and WHAT resources they are allowed to use.
+
+
+
+
+
+2. AWS IAM (IDENTITY AND ACCESS MANAGEMENT)
+
+--------------------------------------------------------------------------------
+
+[Key Characteristics]
+
+- Scope: IAM is a GLOBAL service (it does not require selecting a specific AWS 
+
+  Region; permissions apply across your AWS account).
+
+
+
+[Creating an IAM User - Step-by-Step]
+
+1. Navigate to IAM -> Users -> Create user.
+
+2. Enter User name and select "Provide user access to the AWS Management Console".
+
+3. Set Permissions (attach policies directly, copy permissions, or add to group).
+
+4. Review and Create User.
+
+5. CRITICAL SECURITY STEP: Copy or download the console sign-in URL, username, 
+
+   and password/secret keys BEFORE leaving the final confirmation page. AWS 
+
+   will never display the secret password/key again for security reasons.
+
+
+
+[Managing & Updating Permissions]
+
+- Adding permissions later: Select the User -> Permissions tab -> Add permissions 
+
+  (e.g., attach 'AmazonEC2FullAccess').
+
+- AdministratorAccess: Grants unrestricted full access to all AWS services and 
+
+  resources (use strictly for trusted admins only).
+
+
+
+[IAM User Groups (Scaling Access Management)]
+
+Scenario: You have 10 developers needing identical permissions. Instead of 
+
+attaching policies 10 times:
+
+  1. Go to IAM -> User groups -> Create group.
+
+  2. Name the group (e.g., 'developers').
+
+  3. Select and add all 10 developer users to the group.
+
+  4. Attach required permission policies to the group (all members inherit them).
+
+
+
+
+
+3. CRITICAL IAM INTERVIEW CONCEPTS
+
+--------------------------------------------------------------------------------
+
+[1. POLP — Principle of Least Privilege]
+
+- Always grant users ONLY the minimum permissions required to perform their 
+
+  specific job duties—nothing more.
+
+
+
+[2. Authentication vs. Authorization]
+
+- Authentication (AuthN) : Verifying WHO you are (Username + Password / MFA / 
+
+                           Access Keys).
+
+- Authorization (AuthZ)  : Verifying WHAT you are permitted to do (IAM Policies).
+
+
+
+[3. Impact of Removing IAM Permissions on Data]
+
+- Interview Question: What happens to data/resources if you delete an IAM user 
+
+  or revoke their permissions?
+
+- Answer: The underlying data and AWS resources remain completely untouched and 
+
+  safe. Modifying or deleting IAM permissions ONLY revokes the user's ability 
+
+  to access or manage those resources.
+
+
+
+
+
+4. PRODUCTION WEB TRAFFIC FLOW (INTERVIEW ARCHITECTURE DIAGRAM)
+
+--------------------------------------------------------------------------------
+
+How an external user request safely reaches backend servers:
+
+
+
+  [User / Internet Request]
+
+             |
+
+             v
+
+  +-----------------------+
+
+  |   Firewall / WAF /    |  <-- Step 1: Request hits firewall first to inspect
+
+  |    Security Group     |      and filter out malicious traffic.
+
+  +-----------------------+
+
+             |
+
+             v
+
+  +-----------------------+
+
+  |     Load Balancer     |  <-- Step 2: Filtered traffic hits the Load Balancer,
+
+  |      (ALB / ELB)      |      which distributes requests evenly across servers.
+
+  +-----------------------+
+
+         /       \
+
+        v         v
+
+  [Server 1]   [Server 2]    <-- Step 3: Healthy backend EC2 instances process
+
+   (AZ - 1a)    (AZ - 1b)        the workload with high availability.
+
+
+
+
+
+5. AWS GLOBAL INFRASTRUCTURE: REGIONS, AZs & SUBNETS
+
+--------------------------------------------------------------------------------
+
+[Region vs. Availability Zone (AZ)]
+
+- AWS Region : A distinct physical geographical area around the world containing 
+
+               multiple isolated data center clusters (e.g., ap-south-1 Mumbai, 
+
+               us-east-1 N. Virginia).
+
+- Availability Zone (AZ) : One or more discrete, physically separated data 
+
+               centers within a Region with independent power, cooling, and 
+
+               networking (e.g., ap-south-1a, ap-south-1b).
+
+
+
+[Industry High-Availability Best Practice]
+
+- Always deploy servers across a MINIMUM of 2 Availability Zones (e.g., 1 server 
+
+  in AZ-1a and 1 server in AZ-1b). If one data center fails, the second keeps 
+
+  the application online.
+
+- Note: When launching a single EC2 instance, you select 1 specific AZ/Subnet 
+
+  for that instance.
+
+
+
+[Subnets: Public vs. Private]
+
+- Subnet Definition: A smaller segmented network inside a larger virtual network 
+
+  (VPC - Virtual Private Cloud).
+
+- Public Subnet : Has a direct route to the Internet Gateway (IGW). Instances 
+
+  launched here can receive public IPs and be accessed directly from the internet 
+
+  (used for Web Servers, Load Balancers).
+
+- Private Subnet: Has NO direct route to the Internet Gateway. Instances here 
+
+  cannot be reached directly from the public internet (used for Databases and 
+
+  sensitive backend services).
+
+
+
+
+
+6. HANDS-ON PRACTICAL TASK
+
+--------------------------------------------------------------------------------
+
+Task: Launch an EC2 instance and deploy a web server (Nginx or Apache).
+
+- For Nginx (Ubuntu):
+
+  sudo apt update && sudo apt install nginx -y
+
+  sudo systemctl status nginx
+
+- For Apache (Ubuntu):
+
+  sudo apt update && sudo apt install apache2 -y
+
+  sudo systemctl status apache2
+
+- Ensure Port 80 (HTTP) is open in the EC2 Security Group Inbound Rules to view 
+
+  the default web page via the Public IP.
+
+================================================================================
+
+
+
+
+
+

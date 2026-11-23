@@ -1,0 +1,199 @@
+================================================================================
+
+           LINUX & DEVOPS NOTES — DAY 05 / END OF LINUX (28.09.2026)
+
+================================================================================
+
+
+
+1. CONDITIONAL STATEMENTS (IF - ELSE)
+
+--------------------------------------------------------------------------------
+
+Script to check if a file ('text.txt') exists in the current directory:
+
+
+
+File: if-demo.sh
+
+  #!/bin/bash
+
+
+
+  if [ -f text.txt ]
+
+  then
+
+      echo "File exists"
+
+  else
+
+      echo "File does not found"
+
+  fi
+
+
+
+Execution Steps:
+
+  1. Grant execute permission : chmod +x if-demo.sh
+
+  2. Run script               : ./if-demo.sh
+
+  3. Test condition           : touch text.txt && ./if-demo.sh
+
+     (Note: Ensure the filename inside the script matches the exact file 
+
+     created—e.g., 'text.txt' vs 'test.txt').
+
+
+
+
+
+2. LOOPS (FOR LOOP)
+
+--------------------------------------------------------------------------------
+
+Script to print numbers from 1 to 10:
+
+
+
+File: for-demo.sh
+
+  #!/bin/bash
+
+
+
+  for i in {1..10}
+
+  do
+
+      echo $i
+
+  done
+
+
+
+Execution Steps:
+
+  1. Grant execute permission : chmod +x for-demo.sh
+
+  2. Run script               : ./for-demo.sh
+
+
+
+
+
+3. SECURE FILE TRANSFER FROM LOCAL MACHINE TO EC2 (SCP)
+
+--------------------------------------------------------------------------------
+
+SCP (Secure Copy Protocol) transfers files from your local machine (Windows 
+
+CMD / macOS Terminal) to a remote EC2 server using your .pem key for authentication.
+
+
+
+Syntax:
+
+  scp -i <key-pair.pem> "<local-file-or-zip>" ubuntu@<EC2-Public-IP>:/home/ubuntu/
+
+
+
+Example (from Windows Command Prompt where .pem key is located):
+
+  scp -i mumbai-key123.pem "Zay eCommerce website files.zip" ubuntu@65.0.135.206:/home/ubuntu/
+
+  - Type 'yes' when prompted to confirm host authenticity fingerprint.
+
+  - Connect to EC2 and run 'ls' to verify the zip file arrived in /home/ubuntu/.
+
+
+
+
+
+4. APACHE2 WEB SERVER DEPLOYMENT ON AWS EC2
+
+--------------------------------------------------------------------------------
+
+- Apache2 is a widely used open-source web server that runs on Port 80 (HTTP) 
+
+  by default (just like Nginx).
+
+- Ensure Port 80 (HTTP) is allowed in your EC2 Security Group Inbound Rules.
+
+- Default Apache web root directory on Ubuntu: /var/www/html/
+
+- Can be deployed either manually (step-by-step commands below) or automated 
+
+  via a shell script (.sh).
+
+
+
+[Complete Manual Deployment Execution Steps]
+
+1. Update Package Index:
+
+   sudo apt update
+
+
+
+2. Install Apache2 Web Server:
+
+   sudo apt install apache2 -y
+
+
+
+3. Verify Service Status (visit http://<Public-IP> to see Apache2 Default Page):
+
+   sudo systemctl status apache2
+
+
+
+4. Install Unzip Utility:
+
+   sudo apt install unzip -y
+
+
+
+5. Extract Application Files:
+
+   unzip "Zay eCommerce website files.zip"
+
+
+
+6. Rename Extracted Folder (for cleaner path handling):
+
+   mv "Zay eCommerce website files" z_ecom_ayusha
+
+
+
+7. Deploy Website Files to Apache Web Root:
+
+   sudo rm -rf /var/www/html/*
+
+   sudo cp -r z_ecom_ayusha/* /var/www/html/
+
+
+
+8. Set Proper Web Server Ownership and Permissions:
+
+   sudo chown -R www-data:www-data /var/www/html
+
+   sudo chmod -R 755 /var/www/html
+
+
+
+9. Reload Apache Service to Apply Changes:
+
+   sudo systemctl reload apache2
+
+
+
+10. Verify Public IP & Test Live Website in Browser:
+
+    curl -4 ifconfig.me
+
+    Open browser -> http://<EC2-Public-IP>
+
+================================================================================

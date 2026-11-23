@@ -1,0 +1,315 @@
+================================================================================
+
+           LINUX, DEVOPS & AWS NOTES — DAY 04 (25.09.2026)
+
+================================================================================
+
+
+
+1. HOSTING & ACCESSING NGINX PUBLICLY ON AWS EC2
+
+--------------------------------------------------------------------------------
+
+[Server Setup Steps]
+
+1. Launch an Ubuntu EC2 instance on AWS and connect via SSH / EC2 Instance Connect.
+
+2. Refresh package repositories:
+
+   sudo apt update
+
+3. Install Nginx web server:
+
+   sudo apt install nginx
+
+4. Verify Nginx service is active:
+
+   sudo systemctl status nginx
+
+5. Test locally on the server:
+
+   curl http://localhost
+
+
+
+[Exposing Nginx to the Public Internet]
+
+- By default, AWS blocks external HTTP traffic.
+
+- Go to EC2 Instance -> Security Tab -> Security Groups -> Edit inbound rules.
+
+- Add Rule:
+
+    Type   : HTTP (or Custom TCP on Port 80)
+
+    Source : 0.0.0.0/0 (Anywhere-IPv4)
+
+- Open browser and visit: http://<EC2-Public-IP>
+
+
+
+[Essential Port Numbers to Memorize]
+
+- SSH   : Port 22  (Secure remote terminal access)
+
+- HTTP  : Port 80  (Unencrypted web traffic)
+
+- HTTPS : Port 443 (Encrypted SSL/TLS web traffic)
+
+
+
+
+
+2. LINUX SYSTEM ARCHITECTURE & SHELLS
+
+--------------------------------------------------------------------------------
+
+[4 Layers of Linux Architecture]
+
+1. Application : User-facing software/services (e.g., Nginx, Docker, Vim).
+
+2. Shell       : Command-line interpreter where users type commands (e.g., Bash).
+
+3. Kernel      : Core/brain of Linux; translates human commands into machine-level 
+
+                 instructions and manages hardware resources.
+
+4. Hardware    : Physical components (CPU, RAM, Storage Disks, Network cards).
+
+
+
+[Shell Identification]
+
+Check current active shell:
+
+  echo $SHELL
+
+  (Output on Ubuntu is typically: /bin/bash)
+
+
+
+Common Shell Types:
+
+  - /bin/bash (Bourne Again Shell - default on most Linux distros)
+
+  - /bin/sh   (Bourne Shell)
+
+  - /bin/zsh  (Z Shell - default on macOS)
+
+
+
+
+
+3. SEARCHING FILES: FIND VS. LOCATE
+
+--------------------------------------------------------------------------------
+
+find -name "*.txt"   : Searches for files matching the pattern in real-time 
+
+                       within a specific directory path.
+
+locate text1.txt     : Searches across the entire filesystem (from root /) using 
+
+                       a pre-built index database (requires installing 'plocate' 
+
+                       or 'mlocate' first: sudo apt install plocate).
+
+
+
+Key Difference:
+
+  - "find" searches live on the disk in a target path (slower, always up-to-date).
+
+  - "locate" queries a fast background database across the whole system (very 
+
+    fast, requires 'sudo updatedb' to detect newly created files).
+
+
+
+
+
+4. LOG ANALYSIS, TEXT FILTERING & WORD COUNT
+
+--------------------------------------------------------------------------------
+
+[Practical Log Filtering with grep]
+
+1. Create and populate sample log file:
+
+   vim app.log
+
+   (Paste application logs containing INFO, WARNING, and ERROR entries)
+
+
+
+2. Filter specific log levels:
+
+   grep "WARNING" app.log
+
+   grep "ERROR" app.log
+
+
+
+[System Logs]
+
+journalctl           : Queries and displays centralized system and service logs 
+
+                       managed by systemd.
+
+
+
+[Sorting & Counting Data]
+
+sort text1.txt       : Sorts file lines alphabetically/numerically.
+
+wc -w text1.txt      : Counts total number of words in the file.
+
+wc -l text1.txt      : Counts total number of lines in the file.
+
+
+
+
+
+5. USER, GROUP & OWNERSHIP MANAGEMENT
+
+--------------------------------------------------------------------------------
+
+(Note: Local Linux OS users are distinct from AWS IAM users/roles.)
+
+
+
+[User Lifecycle]
+
+- Create a new user:
+
+  sudo useradd sameer
+
+- Set or update user password:
+
+  sudo passwd sameer
+
+- Verify created users in system database:
+
+  cat /etc/passwd
+
+- Switch to another user account:
+
+  su sameer
+
+  (Note: Switching fails if a password hasn't been configured for the user.)
+
+- Delete user and their home directory:
+
+  sudo userdel -r ram
+
+  (Note: May display a mail spool not found message upon deletion—normal behavior.)
+
+
+
+[Group Lifecycle]
+
+- Create a new group:
+
+  sudo groupadd developers
+
+- Add an existing user to a group (-aG = append to supplementary Group):
+
+  sudo usermod -aG developers sameer
+
+- Verify group memberships:
+
+  groups sameer
+
+  id sameer
+
+- View all system groups (/ at start represents root directory):
+
+  cat /etc/group
+
+
+
+[Changing File Ownership]
+
+- Change both owner and group simultaneously:
+
+  sudo chown sameer:developers text1.txt
+
+- Change only the group ownership:
+
+  sudo chgrp developers filename
+
+
+
+
+
+6. SHELL SCRIPTING BASICS (.sh)
+
+--------------------------------------------------------------------------------
+
+1. Create a script file (extension .sh):
+
+   vim script.sh
+
+
+
+2. Add Shebang (#!) and commands:
+
+   #!/bin/bash
+
+   echo "Welcome to Linux"
+
+
+
+3. Grant execute permissions (running ./script.sh fails with Permission Denied 
+
+   until execute bit is set):
+
+   chmod +x script.sh
+
+
+
+4. Execute the script:
+
+   ./script.sh
+
+
+
+
+
+7. CONNECTING TO EC2 VIA LOCAL TERMINAL / CMD (SSH)
+
+--------------------------------------------------------------------------------
+
+1. Open terminal / Command Prompt in the directory containing your .pem key file.
+
+2. Ensure key permissions are restricted (Linux/macOS):
+
+   chmod 400 your-key.pem
+
+3. Copy the SSH command from AWS Console -> Connect -> SSH client:
+
+   ssh -i "your-key.pem" ubuntu@<EC2-Public-DNS-or-IP>
+
+
+
+
+
+8. PRACTICE LABS & HOMEWORK COMMANDS
+
+--------------------------------------------------------------------------------
+
+Additional Practice Platform: KodeKloud Labs
+
+
+
+Commands to explore and test:
+
+- ip route             : Displays the kernel IP routing table and default gateway.
+
+- ss -tulnp            : Lists all active listening TCP/UDP network ports and 
+
+                         associated processes.
+
+- nslookup google.com  : Queries DNS servers to resolve domain names to IP addresses.
+
+================================================================================

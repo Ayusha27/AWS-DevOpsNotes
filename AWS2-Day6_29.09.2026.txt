@@ -1,0 +1,309 @@
+================================================================================
+
+           AWS CLOUD NOTES — DAY 02 / DAY 06 (29.09.2026)
+
+================================================================================
+
+
+
+1. IAM USER CREATION & DIRECT POLICY ATTACHMENT
+
+--------------------------------------------------------------------------------
+
+Steps:
+
+  1. Navigate to IAM -> Users -> Create user.
+
+  2. Enter User name and enable AWS Management Console access.
+
+  3. Select "Attach policies directly".
+
+  4. Search and attach 'AmazonS3FullAccess'.
+
+  5. Click "Create user".
+
+  6. SECURITY REMINDER: Save/copy the auto-generated console password or CSV 
+
+     immediately in Notepad/Password Manager—AWS will not display it again.
+
+
+
+
+
+2. CORE AWS INTERVIEW QUESTIONS & ANSWERS
+
+--------------------------------------------------------------------------------
+
+Q1: What is cloud computing?
+
+A1: On-demand delivery of IT resources (compute, storage, databases, networking) 
+
+    over the internet with pay-as-you-go pricing, eliminating the need to buy 
+
+    and maintain physical data centers.
+
+
+
+Q2: Difference between Region and Availability Zone (AZ)?
+
+A2: - Region: A physical geographical area (e.g., ap-south-1 Mumbai) containing 
+
+      multiple isolated data centers.
+
+    - Availability Zone (AZ): One or more discrete, physically separated data 
+
+      centers within a Region with independent power, cooling, and networking 
+
+      (e.g., ap-south-1a, ap-south-1b).
+
+
+
+Q3: What is IAM?
+
+A3: Identity and Access Management — a global AWS service used to securely 
+
+    control WHO is authenticated (signed in) and WHAT resources they are 
+
+    authorized (permitted) to access.
+
+
+
+Q4: What is a Security Group?
+
+A4: A stateful virtual firewall attached at the EC2 instance level that 
+
+    controls inbound and outbound network traffic by port, protocol, and IP.
+
+
+
+Q5: What is EC2?
+
+A5: Elastic Compute Cloud — resizable virtual servers in the AWS cloud used to 
+
+    run applications and host services.
+
+
+
+Q6: What is an AMI?
+
+A6: Amazon Machine Image — a pre-configured template containing the Operating 
+
+    System (Ubuntu, Amazon Linux, Windows), application server, and software 
+
+    required to launch an EC2 instance.
+
+
+
+Q7: Why should the AWS Root Account not be used for daily tasks?
+
+A7: The root account has unrestricted administrative access to every resource 
+
+    and billing setting in the account (cannot be restricted by IAM policies). 
+
+    If compromised, the entire account is at risk. Best practice: enable MFA, 
+
+    lock away root credentials, and use IAM users with Least Privilege.
+
+
+
+Q8: What is a Key Pair?
+
+A8: A set of cryptographic security credentials (Public Key stored on AWS EC2 
+
+    + Private Key `.pem` file downloaded by you) used to prove your identity 
+
+    when connecting securely via SSH.
+
+
+
+
+
+3. ESSENTIAL NETWORK PORTS REFERENCE
+
+--------------------------------------------------------------------------------
+
+  Port   | Service / Protocol
+
+  -------|----------------------------------------
+
+  22     | SSH (Secure Shell remote login)
+
+  80     | HTTP (Unencrypted web traffic)
+
+  443    | HTTPS (Encrypted SSL/TLS web traffic)
+
+  3306   | MySQL Database
+
+  5432   | PostgreSQL Database
+
+  8080   | Apache Tomcat / Jenkins
+
+
+
+
+
+4. AWS EBS (ELASTIC BLOCK STORE) — VOLUMES & MANAGEMENT
+
+--------------------------------------------------------------------------------
+
+[What is EBS?]
+
+- Persistent, high-performance block-level storage volumes attached to EC2 
+
+  instances (acts like a virtual hard drive).
+
+- Default root volume size on Ubuntu EC2 is typically 8 GB (visible under 
+
+  EC2 -> Instances -> Storage tab).
+
+
+
+[Creating & Attaching an Additional EBS Volume]
+
+1. Go to EC2 -> Elastic Block Store -> Volumes -> Create volume.
+
+2. Choose Volume Type:
+
+   - General Purpose SSD (gp3 / gp2) : Standard balanced workloads.
+
+   - Provisioned IOPS SSD (io1 / io2): High-performance I/O-intensive databases.
+
+3. Set Size (e.g., 50 GB) and select the EXACT SAME Availability Zone (AZ) as 
+
+   your target EC2 instance.
+
+   *CRITICAL RULE*: EBS volumes are AZ-locked. You cannot attach a volume in 
+
+   `1a` to an EC2 instance in `1b`.
+
+4. Volume States:
+
+   - `Available` : Created and ready, not currently attached to any instance.
+
+   - `In-use`    : Currently attached to an EC2 instance.
+
+5. Select the volume -> Actions -> Attach volume -> Choose EC2 instance.
+
+
+
+[Volume Operations & Rules]
+
+- Modify Volume : Increase volume size or change volume type without downtime.
+
+- Detach Volume : Unmount/detach secondary volumes via Actions -> Detach volume.
+
+- Important Rule: You CANNOT detach the default root (`/`) volume while an 
+
+  instance is running (must stop the instance first).
+
+- Checking storage inside Ubuntu Linux:
+
+  sudo apt update
+
+  lsblk             (Lists all attached block devices/disks and partitions)
+
+
+
+
+
+5. DATA PERSISTENCE & CROSS-AZ BACKUP WORKFLOW (SNAPSHOTS + MOUNTING)
+
+--------------------------------------------------------------------------------
+
+[Part A: Preserving Data When Terminating an EC2 Instance]
+
+1. Launch Server 1 in Availability Zone `1a`.
+
+2. Under "Configure storage" -> Expand "Advanced" -> Set "Delete on termination" 
+
+   to **No** (ensures the EBS volume survives even if the EC2 instance is deleted).
+
+3. Connect to Server 1 and create test data:
+
+   sudo apt update
+
+   mkdir myfile && cd myfile
+
+   vim text1.txt
+
+   # Add content: "This is ebs backup file" and save (:wq)
+
+4. Terminate/Delete Server 1.
+
+5. Go to EC2 -> Volumes: The volume remains in `Available` state and can be 
+
+   re-attached directly to another EC2 instance in the SAME AZ (`1a`).
+
+
+
+[Part B: Migrating/Restoring Backup Data to Another AZ (e.g., 1a -> 1c)]
+
+Since EBS volumes cannot move across AZs directly, use **EBS Snapshots**:
+
+1. Go to EC2 -> Volumes -> Select the `1a` volume -> Actions -> Create snapshot.
+
+2. Add Description (e.g., `1a-volume`) -> Create snapshot.
+
+3. Go to EC2 -> Snapshots -> Wait for status to change from `Pending` to `Completed`.
+
+4. Select Snapshot -> Actions -> Create volume from snapshot.
+
+5. Change Availability Zone to **`1c`** -> Create volume.
+
+6. Attach this new `1c` volume to your EC2 server running in AZ `1c`.
+
+
+
+[Part C: Mounting & Accessing Restored Volume Data in Linux]
+
+1. Connect to the new EC2 server in `1c`:
+
+   sudo apt update
+
+   lsblk
+
+   (Identify the attached backup partition name, e.g., `/dev/nvme1n1p1` or `/dev/xvdf1`)
+
+
+
+2. Create a mount point directory inside `/mnt`:
+
+   sudo mkdir /mnt/mybackup101
+
+
+
+3. Mount the EBS device partition to the folder:
+
+   sudo mount /dev/nvme1n1p1 /mnt/mybackup101
+
+
+
+4. Verify disk mount status:
+
+   df -h
+
+
+
+5. Navigate into the mounted backup to retrieve original files:
+
+   cd /mnt/mybackup101/home/ubuntu/myfile
+
+   ls
+
+   cat text1.txt
+
+   (Output: "This is ebs backup file")
+
+
+
+
+
+6. REFERENCE MATERIAL
+
+--------------------------------------------------------------------------------
+
+- Shared Book / Study Resource:
+
+  https://drive.google.com/file/d/1fqcOWmQXIOfhc1IA7MdzTAoX6Ow5Rm0-/view?usp=sharing
+
+================================================================================
